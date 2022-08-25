@@ -2,7 +2,8 @@ import networkx as nx
 import numpy as np
 
 N = 10 ** 6
-p = 20 / N
+mean_connection = 20
+p = mean_connection / N
 er = nx.erdos_renyi_graph(N, p)
 
 N_neigh = []
