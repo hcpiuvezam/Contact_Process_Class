@@ -22,7 +22,6 @@ int main(){
 
     do{
         CP_object.advance_time();
-        CP_object.simulation();
         cout << CP_object.t << ' ' << CP_object.s <<'\n';
     }while(CP_object.t < 100.0);
 

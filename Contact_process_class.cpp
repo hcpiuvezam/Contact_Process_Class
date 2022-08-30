@@ -205,6 +205,7 @@ Contact_Process::Contact_Process(int L_new, double lambda_new, int model_new, in
 
 void Contact_Process::advance_time(){
     t += (double) 1 / active_num; // Rejection-free Monte Carlo time
+	simulation();
 }
 
 void Contact_Process::simulation(){
