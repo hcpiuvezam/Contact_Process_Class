@@ -198,8 +198,8 @@ Contact_Process::Contact_Process(int L_new, double lambda_new, int model_new, in
     t = 0.;
 }
 
-Density_Decay::Density_Decay (double t_max, int N_trials, bool time_log, int L_new, double lambda_new, int model_new, int fullnet_new)
-: Contact_Process(L_new, lambda_new, model_new, fullnet_new){
+Density_Decay::Density_Decay (double New_tmax, int New_trials, bool New_log, bool New_surv, int L_new, double lambda_new, int model_new, int fullnet_new)
+: t_max(New_tmax), N_trials(New_trials), time_log(New_log), surv(New_surv), Contact_Process(L_new, lambda_new, model_new, fullnet_new){
 	for(int i = 0; i < L; ++i)
 		/* Initializes the network at all active */
         cells[i] = 1;
@@ -320,6 +320,7 @@ void Density_Decay::time_loop(){
 
 void Density_Decay::trial_loop(){
 	int j = 0;
+
 	while(j < N_trials){
 		t = 0.;
 
@@ -336,20 +337,22 @@ void Density_Decay::trial_loop(){
 
 		time_loop();
 
-		++N_s;
-		N_inv = (double) 1 / N_s;
+		if(s > 0 or not(surv)){
+			// if surviving is true, we only consider surviving runs.
+			++N_s;
+			N_inv = (double) 1 / N_s;
 
-		for(std::size_t n = 0; n < t_med.size(); ++n){
-			aux_rho = N_inv * rho_aux[n] + (1 - N_inv) * rho_med[n];
-			rho_std[n] = rho_std[n] + (rho_aux[n] - aux_rho) * (rho_aux[n] - rho_med[n]);
-			rho_med[n] = aux_rho;
-		} /* Mean value of rho at each selected time step */
+			for(std::size_t n = 0; n < t_med.size(); ++n){
+				aux_rho = N_inv * rho_aux[n] + (1 - N_inv) * rho_med[n];
+				rho_std[n] = rho_std[n] + (rho_aux[n] - aux_rho) * (rho_aux[n] - rho_med[n]);
+				rho_med[n] = aux_rho;
+			} /* Mean value of rho at each selected time step */
 
-		j++;
-
+			j++;
+		}
 		std::fill(rho_aux.begin(), rho_aux.end(), 0.);
 	}
-	
+
 	if(N_s > 1)
 		for(std::size_t n = 0; n < t_med.size(); ++n)
 			rho_std[n] = rho_std[n] / (N_s - 1);

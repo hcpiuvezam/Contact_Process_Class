@@ -91,7 +91,8 @@ class Density_Decay : public Contact_Process{
 		// time
 		double dt,
 			   t_max;
-		bool time_log;
+		bool time_log,
+			 surv;
 		// counters
 		int	d,
 			N_s = 0,
@@ -115,7 +116,7 @@ class Density_Decay : public Contact_Process{
 							t_med,
 							rho_aux;
 
-		Density_Decay (double t_max, int N_trials, bool time_log, int L_new, double lambda_new, int model_new, int fullnet_new);
+		Density_Decay (double t_max, int N_trials, bool time_log, bool surv, int L_new, double lambda_new, int model_new, int fullnet_new);
 };
 
 class Avalanche_dynamics : public Contact_Process{};
