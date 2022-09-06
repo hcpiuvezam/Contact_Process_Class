@@ -198,7 +198,31 @@ Contact_Process::Contact_Process(int L_new, double lambda_new, int model_new, in
     t = 0.;
 }
 
+Density_Decay::Density_Decay (double t_max, int N_trials, bool time_log, int L_new, double lambda_new, int model_new, int fullnet_new)
+: Contact_Process(L_new, lambda_new, model_new, fullnet_new){
+	for(int i = 0; i < L; ++i)
+		/* Initializes the network at all active */
+        cells[i] = 1;
 
+	active_num = L;
+	
+	if (time_log){
+		t_med = vector_log_time(t_max);
+		steps = (int) t_med.size();
+	}
+	else{
+		dt = 0.1;
+		steps = (int) t_max / dt;
+		for(int n = 0; n < steps + 1; n++)
+			t_med[n] = (double) n * dt;
+	}
+
+	for(std::size_t n = 0; n < steps + 1; n++){
+		rho_med.push_back(0.);
+		rho_aux.push_back(0.);
+		rho_std.push_back(0.);
+	}
+}
 
 
 /* Simulation functions */
@@ -278,4 +302,87 @@ void Contact_Process::simulation(){
         }
     }
     s = active_num;
+}
+
+/* Density Functions */
+
+void Density_Decay::time_loop(){
+	do{
+		advance_time();
+
+		while( t > t_med[d] and d <= steps){
+			rho_aux[d] = (double) s / L;
+			++d;
+		}
+
+	}while(t < t_max and s > 0);
+}
+
+void Density_Decay::trial_loop(){
+	int j = 0;
+	while(j < N_trials){
+		t = 0.;
+
+		std::fill(cells.begin(), cells.end(), 1);
+
+		for(int i = 0; i <  L; ++i)
+			active_indexes.push_back(i);
+
+		s = L;
+		active_num = L;
+		rho_aux[0] = 1.;
+
+		d = 1;
+
+		time_loop();
+
+		++N_s;
+		N_inv = (double) 1 / N_s;
+
+		for(std::size_t n = 0; n < t_med.size(); ++n){
+			aux_rho = N_inv * rho_aux[n] + (1 - N_inv) * rho_med[n];
+			rho_std[n] = rho_std[n] + (rho_aux[n] - aux_rho) * (rho_aux[n] - rho_med[n]);
+			rho_med[n] = aux_rho;
+		} /* Mean value of rho at each selected time step */
+
+		j++;
+
+		std::fill(rho_aux.begin(), rho_aux.end(), 0.);
+	}
+	
+	if(N_s > 1)
+		for(std::size_t n = 0; n < t_med.size(); ++n)
+			rho_std[n] = rho_std[n] / (N_s - 1);
+}
+
+vector<double> Density_Decay::vector_log_time(double t_max){
+	double aux;
+	int p_t = 0,
+		d = 1,
+		j = 0,
+		steps;
+
+	aux = t_max;
+		
+	while(aux > 1.){
+		aux = aux / 10;
+		p_t = p_t + 1;
+	}
+	steps = 1 + 9 * p_t;
+
+	vector<double> time_vector(steps + 1, 0.);
+	// time acquisition
+	for(std::size_t n = 0; n < steps + 1; n++){
+
+		time_vector[n] = j * d;
+		
+		++j;
+		
+		if (j == 10){
+			d = d * 10;
+			j = 1;
+		}
+	}
+
+	return time_vector;
 }

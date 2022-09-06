@@ -1,5 +1,5 @@
 /*
-Programmer: Heleana Christina Piuvezam de Albuquerque Bastos
+Programmer: Helena Christina Piuvezam de Albuquerque Bastos
 Descrição: Program to reproduce figures from the article 
 "Griffiths phases and the stretching of criticality in brain networks"
 	from Paolo Moretti and Miguel Angel Muñoz 
@@ -39,25 +39,8 @@ class Contact_Process{
 		/* Private functions and variables */
 		// Probabilities
 		double prob_creation,
-			   r,
-			   prob_inact;
-		// time
-		double dt = 0.,
-			   p_t = 7.,
-			   t_max = 10000000.,
-			   t_ref = 0.;
-		// auxiliar
-		double N_inv,
-			   dev_m = 0.,
-			   rho_m = 0.,
-			   aux_rho,
-			   rho_mold = 0.;
-		// counters
-		int	d,
-			N_s = 0,
-			size = 0, // Avalanche size
-			steps = 10 + 9 * (p_t - 1),
-			counter;
+			   prob_inact,
+			   r;
 		// indices
 		int x,
 			y,
@@ -77,10 +60,11 @@ class Contact_Process{
 		   	   mu = 1;
 		// time
 		double t;
+		// counters
+		int size;
 		// Size of Simulation
 		int L,
 			S = 14,
-			trials,
 			N_neighbours,
 			s,
 			active_num;
@@ -100,9 +84,40 @@ class Contact_Process{
 		// Functions
 		void advance_time();
 		void simulation();
-	
 };
 
-class Density_Decay : public Contact_Process{};
+class Density_Decay : public Contact_Process{
+	private:
+		// time
+		double dt,
+			   t_max;
+		bool time_log;
+		// counters
+		int	d,
+			N_s = 0,
+			N_trials,
+			steps,
+			counter;
+		double N_inv = 0.;
+		// auxiliar
+		double dev_m = 0.,
+			   rho_m = 0.,
+			   aux_rho,
+			   rho_mold = 0.;
+
+		void time_loop();
+		void trial_loop();
+		vector<double> vector_log_time(double t_max);
+
+	public:
+		std::vector<double> rho_med,
+							rho_std,
+							t_med,
+							rho_aux;
+
+		Density_Decay (double t_max, int N_trials, bool time_log, int L_new, double lambda_new, int model_new, int fullnet_new);
+};
+
 class Avalanche_dynamics : public Contact_Process{};
+
 class Dynamic_Range : public Contact_Process{};
